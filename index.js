@@ -3,6 +3,8 @@ import fs from 'fs';
 import cors from "cors";
 import process from "process";
 import express from "express";
+import { Readable } from "stream";
+import { finished } from "stream/promises";
 
 let sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -20,10 +22,10 @@ app.use(express.urlencoded({limit: "500mb"}));
 app.use(cors());
 
 let assetId = 0;
-async function executeRequest(req, res, serverIndex, method) {
+async function handleRequest(req, res, method) {
 
   try {
-    console.log("executing request", config.destinationServers[serverIndex] + req.url);
+    console.log("executing request", config.destinationServer + req.url);
     let modifiedHeaders = {...req.headers};
 
     delete modifiedHeaders["content-length"];
@@ -50,7 +52,7 @@ async function executeRequest(req, res, serverIndex, method) {
 
     const stream = fs.createWriteStream(filepath);
     let response = await fetch(
-      "http" + (config.useHttps ? "s" : "") +  "://" + config.destinationServers[serverIndex] + req.url,
+      "http" + (config.useHttps ? "s" : "") +  "://" + config.destinationServer + req.url,
       params
     );
     // let blob = await response.blob();
@@ -66,6 +68,22 @@ async function executeRequest(req, res, serverIndex, method) {
     res.end("error");
   }
 }
+
+app.post("*", (req, res) => {
+  handleRequest(req, res, "POST");
+});
+
+app.get("*", (req, res) => {
+  handleRequest(req, res, "GET");
+});
+
+app.put("*", (req, res) => {
+  handleRequest(req, res, "PUT");
+});
+
+app.options("*", (req, res) => {
+  handleRequest(req, res, "OPTIONS");
+});
 
 let port = config.port;
 app.listen(port, () => {

@@ -1,7 +1,7 @@
 {
-  "destinationServer": "10.10.1.79:7861",
-  "port": 1237,
+  "destinationServer": "seraph-01.local:5001",
+  "port": 3002,
   "directory": "audio",
-  "fileExtension": ".wav",
+  "fileExtension": "wav",
   "filenamePrefix": "audio_"
 }
